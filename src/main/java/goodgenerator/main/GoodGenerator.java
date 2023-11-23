@@ -4,7 +4,6 @@ import net.minecraft.creativetab.CreativeTabs;
 
 import com.github.bartimaeusnek.bartworks.API.WerkstoffAdderRegistry;
 
-import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.Mod;
 import cpw.mods.fml.common.SidedProxy;
 import cpw.mods.fml.common.event.FMLInitializationEvent;
@@ -14,7 +13,6 @@ import cpw.mods.fml.common.event.FMLPreInitializationEvent;
 import cpw.mods.fml.common.network.NetworkRegistry;
 import cpw.mods.fml.common.network.simpleimpl.SimpleNetworkWrapper;
 import goodgenerator.common.CommonProxy;
-import goodgenerator.crossmod.thaumcraft.Research;
 import goodgenerator.items.MyMaterial;
 import goodgenerator.loader.Loaders;
 import goodgenerator.loader.NaquadahReworkRecipeLoader;
@@ -78,8 +76,6 @@ public final class GoodGenerator {
     }
 
     public static void crossMod() {
-        if (Loader.isModLoaded("Thaumcraft")) {
-            Research.addResearch();
-        }
+
     }
 }

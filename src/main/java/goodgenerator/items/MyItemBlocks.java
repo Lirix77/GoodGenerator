@@ -4,7 +4,6 @@ import static goodgenerator.loader.Loaders.essentiaCell;
 import static goodgenerator.loader.Loaders.yottaFluidTankCell;
 import static goodgenerator.util.CharExchanger.tierName;
 
-import java.util.Arrays;
 import java.util.List;
 
 import net.minecraft.block.Block;
@@ -16,11 +15,8 @@ import net.minecraft.util.StatCollector;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import goodgenerator.blocks.regularBlock.TEBlock;
-import goodgenerator.blocks.tileEntity.EssentiaOutputHatch;
 import goodgenerator.main.GoodGenerator;
 import goodgenerator.util.CharExchanger;
-import goodgenerator.util.DescTextLocalization;
 import gregtech.api.util.GT_LanguageManager;
 
 public class MyItemBlocks extends ItemBlock {
@@ -71,19 +67,7 @@ public class MyItemBlocks extends ItemBlock {
     public void addInformation(ItemStack stack, EntityPlayer playerIn, List tooltip, boolean advanced) {
         if (stack == null) return;
         tooltip.add(mNoMobsToolTip);
-        if (Block.getBlockFromItem(stack.getItem()) instanceof TEBlock) {
-            TEBlock tile = (TEBlock) Block.getBlockFromItem(stack.getItem());
-            if (tile.getIndex() == 1)
-                tooltip.addAll(Arrays.asList(DescTextLocalization.addText("EssentiaHatch.tooltip", 2)));
-            if (tile.getIndex() == 2) {
-                tooltip.add(StatCollector.translateToLocal("EssentiaOutputHatch.tooltip.0"));
-                tooltip.add(
-                        StatCollector.translateToLocal("EssentiaOutputHatch.tooltip.1") + " "
-                                + EssentiaOutputHatch.CAPACITY);
-            }
-        } else {
-            tooltip.add(mNoTileEntityToolTip);
-        }
+        tooltip.add(mNoTileEntityToolTip);
 
         if (Block.getBlockFromItem(stack.getItem()).equals(yottaFluidTankCell)) {
             StringBuilder cap = new StringBuilder();

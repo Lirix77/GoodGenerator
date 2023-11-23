@@ -8,27 +8,20 @@ import net.minecraft.item.ItemStack;
 import net.minecraftforge.oredict.OreDictionary;
 
 import cpw.mods.fml.common.FMLCommonHandler;
-import cpw.mods.fml.common.Loader;
 import cpw.mods.fml.common.registry.GameRegistry;
 import goodgenerator.blocks.myFluids.FluidsBuilder;
 import goodgenerator.blocks.regularBlock.Casing;
 import goodgenerator.blocks.regularBlock.ComplexTextureCasing;
 import goodgenerator.blocks.regularBlock.Frame;
-import goodgenerator.blocks.regularBlock.TEBlock;
 import goodgenerator.blocks.regularBlock.TurbineCasing;
 import goodgenerator.blocks.tileEntity.ComponentAssemblyLine;
 import goodgenerator.blocks.tileEntity.CoolantTower;
-import goodgenerator.blocks.tileEntity.EssentiaHatch;
-import goodgenerator.blocks.tileEntity.EssentiaOutputHatch;
-import goodgenerator.blocks.tileEntity.EssentiaOutputHatch_ME;
 import goodgenerator.blocks.tileEntity.ExtremeHeatExchanger;
 import goodgenerator.blocks.tileEntity.FuelRefineFactory;
 import goodgenerator.blocks.tileEntity.GTMetaTileEntity.DieselGenerator;
 import goodgenerator.blocks.tileEntity.GTMetaTileEntity.NeutronAccelerator;
 import goodgenerator.blocks.tileEntity.GTMetaTileEntity.NeutronSensor;
 import goodgenerator.blocks.tileEntity.GTMetaTileEntity.YOTTAHatch;
-import goodgenerator.blocks.tileEntity.LargeEssentiaGenerator;
-import goodgenerator.blocks.tileEntity.LargeEssentiaSmeltery;
 import goodgenerator.blocks.tileEntity.LargeFusionComputer1;
 import goodgenerator.blocks.tileEntity.LargeFusionComputer2;
 import goodgenerator.blocks.tileEntity.LargeFusionComputer3;
@@ -44,8 +37,6 @@ import goodgenerator.client.render.BlockRenderHandler;
 import goodgenerator.crossmod.LoadedList;
 import goodgenerator.crossmod.ic2.CropsLoader;
 import goodgenerator.crossmod.nei.IMCForNEI;
-import goodgenerator.crossmod.nei.NEI_Config;
-import goodgenerator.crossmod.thaumcraft.LargeEssentiaEnergyData;
 import goodgenerator.items.MyItemBlocks;
 import goodgenerator.items.MyItems;
 import goodgenerator.items.MyMaterial;
@@ -342,7 +333,7 @@ public class Loaders {
     public static void Register() {
 
         GameRegistry.registerItem(_null_, "_null_", GoodGenerator.MOD_ID);
-        NEI_Config.hide(_null_);
+        // NEI_Config.hide(_null_);
 
         GameRegistry.registerBlock(MAR_Casing, MyItemBlocks.class, "MAR_Casing");
         GameRegistry.registerBlock(radiationProtectionSteelFrame, MyItemBlocks.class, "radiationProtectionSteelFrame");
@@ -400,34 +391,7 @@ public class Loaders {
     }
 
     public static void compactMod() {
-        if (Loader.isModLoaded("Thaumcraft")) {
-            LargeEssentiaEnergyData.processEssentiaData();
-            GameRegistry.registerItem(upgradeEssentia, "upgradeEssentia", GoodGenerator.MOD_ID);
-            GameRegistry.registerTileEntity(EssentiaHatch.class, "EssentiaHatch");
-            GameRegistry.registerTileEntity(EssentiaOutputHatch.class, "EssentiaOutputHatch");
-            GameRegistry.registerTileEntity(EssentiaOutputHatch_ME.class, "EssentiaOutputHatch_ME");
-            Loaders.LEG = new LargeEssentiaGenerator(IDOffset + 1, "LargeEssentiaGenerator", "Large Essentia Generator")
-                    .getStackForm(1L);
-            Loaders.LES = new LargeEssentiaSmeltery(IDOffset + 23, "LargeEssentiaSmeltery", "Large Essentia Smeltery")
-                    .getStackForm(1L);
-            essentiaHatch = new TEBlock("essentiaHatch", new String[] { GoodGenerator.MOD_ID + ":essentiaHatch" }, 1);
-            essentiaOutputHatch = new TEBlock(
-                    "essentiaOutputHatch",
-                    new String[] { GoodGenerator.MOD_ID + ":essentiaOutputHatch" },
-                    2);
-            essentiaOutputHatch_ME = new TEBlock(
-                    "essentiaOutputHatch_ME",
-                    new String[] { GoodGenerator.MOD_ID + ":essentiaOutputHatch_ME" },
-                    3);
-            GameRegistry.registerBlock(magicCasing, MyItemBlocks.class, "magicCasing");
-            GameRegistry.registerBlock(essentiaCell, MyItemBlocks.class, "essentiaCell");
-            GameRegistry.registerBlock(essentiaHatch, MyItemBlocks.class, "essentiaHatch");
-            GameRegistry.registerBlock(essentiaOutputHatch, MyItemBlocks.class, "essentiaOutputHatch");
-            GameRegistry.registerBlock(essentiaFilterCasing, MyItemBlocks.class, "essentiaFilterCasing");
-            GameRegistry.registerBlock(essentiaOutputHatch_ME, MyItemBlocks.class, "essentiaOutputHatch_ME");
 
-            Textures.BlockIcons.casingTexturePages[GoodGeneratorTexturePage][0] = TextureFactory.of(magicCasing);
-        }
     }
 
     public static void addOreDic() {

@@ -9,25 +9,17 @@ import net.minecraft.client.renderer.texture.IIconRegister;
 import net.minecraft.creativetab.CreativeTabs;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EnumCreatureType;
-import net.minecraft.entity.player.EntityPlayer;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.tileentity.TileEntity;
 import net.minecraft.util.IIcon;
-import net.minecraft.util.StatCollector;
 import net.minecraft.world.IBlockAccess;
 import net.minecraft.world.World;
 
 import cpw.mods.fml.relauncher.Side;
 import cpw.mods.fml.relauncher.SideOnly;
-import goodgenerator.blocks.tileEntity.EssentiaHatch;
-import goodgenerator.blocks.tileEntity.EssentiaOutputHatch;
-import goodgenerator.blocks.tileEntity.EssentiaOutputHatch_ME;
 import goodgenerator.main.GoodGenerator;
 import gregtech.api.GregTech_API;
-import gregtech.api.util.GT_Utility;
-import thaumcraft.api.aspects.Aspect;
-import thaumcraft.api.aspects.IEssentiaContainerItem;
 
 public class TEBlock extends BlockContainer {
 
@@ -138,65 +130,6 @@ public class TEBlock extends BlockContainer {
     @Override
     public boolean canCreatureSpawn(EnumCreatureType type, IBlockAccess world, int x, int y, int z) {
         return false;
-    }
-
-    @Override
-    public TileEntity createTileEntity(World world, int meta) {
-        switch (index) {
-            case 1:
-                return new EssentiaHatch();
-            case 2:
-                return new EssentiaOutputHatch();
-            case 3:
-                return new EssentiaOutputHatch_ME();
-            default:
-                return null;
-        }
-    }
-
-    @Override
-    public boolean onBlockActivated(World world, int x, int y, int z, EntityPlayer player, int par6, float par7,
-            float par8, float par9) {
-        if (world.isRemote) {
-            return false;
-        } else {
-            TileEntity tile = world.getTileEntity(x, y, z);
-            if (index == 1) {
-                if (tile instanceof EssentiaHatch) {
-                    ItemStack tItemStack = player.getHeldItem();
-                    if (tItemStack != null) {
-                        Item tItem = tItemStack.getItem();
-                        if (tItem instanceof IEssentiaContainerItem
-                                && ((IEssentiaContainerItem) tItem).getAspects(player.getHeldItem()) != null
-                                && ((IEssentiaContainerItem) tItem).getAspects(player.getHeldItem()).size() > 0) {
-                            Aspect tLocked = ((IEssentiaContainerItem) tItem).getAspects(player.getHeldItem())
-                                    .getAspects()[0];
-                            ((EssentiaHatch) tile).setLockedAspect(tLocked);
-                            GT_Utility.sendChatToPlayer(
-                                    player,
-                                    String.format(
-                                            StatCollector.translateToLocal("essentiahatch.chat.0"),
-                                            tLocked.getLocalizedDescription()));
-                        }
-                    } else {
-                        ((EssentiaHatch) tile).setLockedAspect(null);
-                        GT_Utility.sendChatToPlayer(player, StatCollector.translateToLocal("essentiahatch.chat.1"));
-                    }
-                    world.markBlockForUpdate(x, y, z);
-                    return true;
-                } else return false;
-            } else if (index == 2) {
-                if (tile instanceof EssentiaOutputHatch && player.isSneaking()) {
-                    ItemStack tItemStack = player.getHeldItem();
-                    if (tItemStack == null) {
-                        ((EssentiaOutputHatch) tile).clear();
-                        GT_Utility
-                                .sendChatToPlayer(player, StatCollector.translateToLocal("essentiaoutputhatch.chat.0"));
-                    }
-                    return true;
-                } else return false;
-            } else return false;
-        }
     }
 
     @Override

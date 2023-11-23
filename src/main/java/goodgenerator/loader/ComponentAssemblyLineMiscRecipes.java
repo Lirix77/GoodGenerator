@@ -1,7 +1,6 @@
 package goodgenerator.loader;
 
 import static goodgenerator.util.ItemRefer.*;
-import static goodgenerator.util.Log.LOGGER;
 
 import java.util.HashMap;
 
@@ -12,12 +11,9 @@ import net.minecraftforge.fluids.Fluid;
 import net.minecraftforge.fluids.FluidRegistry;
 import net.minecraftforge.fluids.FluidStack;
 
-import org.apache.logging.log4j.Level;
-
 import com.github.bartimaeusnek.bartworks.system.material.WerkstoffLoader;
 import com.github.technus.tectech.recipe.TT_recipeAdder;
 
-import cpw.mods.fml.common.registry.GameRegistry;
 import goodgenerator.items.MyMaterial;
 import goodgenerator.util.StackUtils;
 import gregtech.api.enums.GT_Values;
@@ -44,19 +40,7 @@ public class ComponentAssemblyLineMiscRecipes {
 
         generateCasingRecipes();
         generateWrapRecipes();
-        // Try and find the ZPM Fluid solidifier
-        ItemStack solidifier;
-        try {
-            Class<?> c = Class.forName("com.dreammaster.gthandler.CustomItemList");
-            Object maybeSolidifier = c.getMethod("valueOf", String.class).invoke(null, "FluidSolidifierZPM");
-            solidifier = (ItemStack) (c.getMethod("get", long.class, Object[].class)
-                    .invoke(maybeSolidifier, 16L, null));
-            if (GT_Utility.isStackValid(solidifier)) LOGGER.log(Level.INFO, "ZPM Fluid Solidifier found.");
-            else throw new NullPointerException();
-        } catch (Exception e) {
-            LOGGER.log(Level.ERROR, "ZPM Fluid Solidifier not found, falling back to IV.", e);
-            solidifier = ItemList.Machine_IV_FluidSolidifier.get(16);
-        }
+        ItemStack solidifier = ItemList.Machine_IV_FluidSolidifier.get(16);
 
         // The controller itself
         GT_Values.RA.addAssemblylineRecipe(
@@ -353,20 +337,6 @@ public class ComponentAssemblyLineMiscRecipes {
                     30 * 20,
                     30);
         }
-        GT_Values.RA.addAssemblerRecipe(
-                new ItemStack[] { GameRegistry.findItemStack("dreamcraft", "item.PikoCircuit", 16),
-                        GT_Utility.getIntegratedCircuit(16) },
-                Materials.SolderingAlloy.getMolten(72L),
-                new ItemStack(Loaders.circuitWrap, 1, 12),
-                30 * 20,
-                30);
-        GT_Values.RA.addAssemblerRecipe(
-                new ItemStack[] { GameRegistry.findItemStack("dreamcraft", "item.QuantumCircuit", 16),
-                        GT_Utility.getIntegratedCircuit(16) },
-                Materials.SolderingAlloy.getMolten(72L),
-                new ItemStack(Loaders.circuitWrap, 1, 13),
-                30 * 20,
-                30);
     }
 
     @SuppressWarnings("unused")

@@ -13,10 +13,7 @@ public class NEI_Config implements IConfigureNEI {
     public static boolean isAdded = true;
 
     @Override
-    public void loadConfig() {
-        NEI_Config.isAdded = false;
-        NEI_Config.isAdded = true;
-    }
+    public void loadConfig() {}
 
     public static void hide(Block aBlock) {
         API.hideItem(new ItemStack(aBlock, 1));
