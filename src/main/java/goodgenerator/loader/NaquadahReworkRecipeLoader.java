@@ -41,6 +41,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 import java.util.HashSet;
 
 import net.minecraft.item.ItemStack;
@@ -629,9 +630,10 @@ public class NaquadahReworkRecipeLoader {
 
         // For Crusher
         for (GT_Recipe recipe : GT_Recipe.GT_Recipe_Map.sMaceratorRecipes.mRecipeList) {
-            ItemStack input = recipe.mInputs[0];
-            if (GT_Utility.isStackValid(input)) {
-                int[] oreDict = OreDictionary.getOreIDs(input);
+            ItemStack[] inputs = recipe.mInputs;
+            if (Arrays.stream(inputs).count() == 0) break;
+            if (GT_Utility.isStackValid(inputs[0])) {
+                int[] oreDict = OreDictionary.getOreIDs(inputs[0]);
                 for (int oreDictID : oreDict) {
                     if ((OreDictionary.getOreName(oreDictID).startsWith("ore")
                             || OreDictionary.getOreName(oreDictID).startsWith("crushed"))
