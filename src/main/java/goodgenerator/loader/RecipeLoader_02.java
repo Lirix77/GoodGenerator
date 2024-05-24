@@ -203,15 +203,6 @@ public class RecipeLoader_02 {
 
         GT_Values.RA.stdBuilder()
                 .itemInputs(
-                        ItemList.Hatch_Output_IV.get(1),
-                        GT_ModHandler.getModItem("appliedenergistics2", "item.ItemMultiPart", 1, 440),
-                        GT_OreDictUnificator.get(OrePrefixes.screw, Materials.CertusQuartz, 8),
-                        GT_Utility.getIntegratedCircuit(1))
-                .fluidInputs(Materials.Plastic.getMolten(144)).itemOutputs(Loaders.YFH).duration(10 * SECONDS)
-                .eut(TierEU.RECIPE_EV).addTo(assemblerRecipes);
-
-        GT_Values.RA.stdBuilder()
-                .itemInputs(
                         ItemList.Large_Fluid_Cell_Steel.get(12L),
                         GT_OreDictUnificator.get(OrePrefixes.plateQuadruple, Materials.Tin, 4),
                         GT_Utility.getIntegratedCircuit(1))
