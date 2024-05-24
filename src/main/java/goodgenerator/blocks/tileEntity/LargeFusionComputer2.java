@@ -21,7 +21,6 @@ import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.util.GT_Multiblock_Tooltip_Builder;
 import gregtech.api.util.GT_Utility;
-import gregtech.common.power.FusionPower;
 
 public class LargeFusionComputer2 extends LargeFusionComputer {
 
@@ -31,12 +30,10 @@ public class LargeFusionComputer2 extends LargeFusionComputer {
 
     public LargeFusionComputer2(int id, String name, String nameRegional) {
         super(id, name, nameRegional);
-        power = new FusionPower((byte) 7, 320_000_000);
     }
 
     public LargeFusionComputer2(String name) {
         super(name);
-        power = new FusionPower((byte) 7, 320_000_000);
     }
 
     @Override
@@ -44,12 +41,25 @@ public class LargeFusionComputer2 extends LargeFusionComputer {
         final GT_Multiblock_Tooltip_Builder tt = new GT_Multiblock_Tooltip_Builder();
         tt.addMachineType("Fusion Reactor").addInfo("Millions of nuclear.")
                 .addInfo("Controller block for the Compact Fusion Reactor MK-II.")
-                .addInfo("524,288EU/t and 10M EU capacity per Energy Hatch")
+                .addInfo(
+                        EnumChatFormatting.AQUA + GT_Utility.formatNumbers(getSingleHatchPower())
+                                + EnumChatFormatting.GRAY
+                                + " EU/t and "
+                                + EnumChatFormatting.AQUA
+                                + GT_Utility.formatNumbers(capableStartupCanonical() / 32 / M)
+                                + "M"
+                                + EnumChatFormatting.GRAY
+                                + " EU capacity per Energy Hatch")
                 .addInfo("If the recipe has a startup cost greater than the")
                 .addInfo("number of energy hatches * cap, you can't do it")
+                .addInfo(
+                        "If the recipe requires a voltage tier over "
+                                + GT_Utility.getColoredTierNameFromTier((byte) tier())
+                                + EnumChatFormatting.GRAY
+                                + " , you can't do it either")
                 .addInfo("Make sure the whole structure is built in the 3x3")
                 .addInfo("chunk area of the ring center (not controller).")
-                .addInfo("Startup < 160,000,000 EU: 128x Parallel").addInfo("Startup < 320,000,000 EU: 64x Parallel")
+                .addInfo("Startup < 160,000,000 EU: 128x Parallel").addInfo("Startup >= 160,000,000 EU: 64x Parallel")
                 .addInfo(
                         "Support" + EnumChatFormatting.BLUE
                                 + " Tec"
@@ -62,7 +72,7 @@ public class LargeFusionComputer2 extends LargeFusionComputer {
                 .addCasingInfo("Duranium Frame Box", 128)
                 .addCasingInfo("Iridium Reinforced Borosilicate Glass Block", 63)
                 .addEnergyHatch("1-32, Hint block with dot 2", 2).addInputHatch("1-16, Hint block with dot 1", 1)
-                .addOutputHatch("1-16, Hint block with dot 1", 1)
+                .addOutputHatch("1-16, Hint block with dot 1", 1).addStructureInfo("Supports Crafting Input Buffer")
                 .addStructureInfo(
                         "ALL Hatches must be " + GT_Utility.getColoredTierNameFromTier((byte) hatchTier())
                                 + EnumChatFormatting.GRAY
@@ -72,8 +82,13 @@ public class LargeFusionComputer2 extends LargeFusionComputer {
     }
 
     @Override
-    public long maxEUStore() {
-        return 320006000L * (Math.min(32, this.mEnergyHatches.size() + this.eEnergyMulti.size())) / 32L;
+    public int tier() {
+        return 7;
+    }
+
+    @Override
+    public long capableStartupCanonical() {
+        return 320_000_000;
     }
 
     @Override
@@ -129,11 +144,6 @@ public class LargeFusionComputer2 extends LargeFusionComputer {
     @Override
     public ITexture getTextureOverlay() {
         return textureOverlay;
-    }
-
-    @Override
-    public int tierOverclock() {
-        return 2;
     }
 
     @Override

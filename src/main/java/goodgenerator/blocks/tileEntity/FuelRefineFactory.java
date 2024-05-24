@@ -5,7 +5,6 @@ import static goodgenerator.util.DescTextLocalization.BLUE_PRINT_INFO;
 import static gregtech.api.util.GT_StructureUtility.buildHatchAdder;
 
 import net.minecraft.block.Block;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.StatCollector;
@@ -18,15 +17,17 @@ import com.github.technus.tectech.thing.metaTileEntity.hatch.GT_MetaTileEntity_H
 import com.gtnewhorizon.structurelib.StructureLibAPI;
 import com.gtnewhorizon.structurelib.alignment.constructable.IConstructable;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
-import com.gtnewhorizon.structurelib.structure.IItemSource;
+import com.gtnewhorizon.structurelib.structure.AutoPlaceEnvironment;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
 import com.gtnewhorizon.structurelib.structure.IStructureElement;
+import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.gtnewhorizon.structurelib.structure.StructureUtility;
 
+import goodgenerator.api.recipe.GoodGeneratorRecipeMaps;
 import goodgenerator.blocks.tileEntity.base.GT_MetaTileEntity_TooltipMultiBlockBase_EM;
 import goodgenerator.loader.Loaders;
 import goodgenerator.util.DescTextLocalization;
-import goodgenerator.util.MyRecipeAdder;
 import gregtech.api.enums.GT_HatchElement;
 import gregtech.api.enums.Textures;
 import gregtech.api.interfaces.ITexture;
@@ -39,6 +40,7 @@ import gregtech.api.metatileentity.implementations.GT_MetaTileEntity_Hatch_Input
 import gregtech.api.metatileentity.implementations.GT_MetaTileEntity_Hatch_InputBus;
 import gregtech.api.metatileentity.implementations.GT_MetaTileEntity_Hatch_Output;
 import gregtech.api.objects.GT_RenderedTexture;
+import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.recipe.check.CheckRecipeResultRegistry;
 import gregtech.api.render.TextureFactory;
@@ -58,11 +60,13 @@ public class FuelRefineFactory extends GT_MetaTileEntity_TooltipMultiBlockBase_E
     public FuelRefineFactory(String name) {
         super(name);
         turnOffMaintenance();
+        useLongPower = true;
     }
 
     public FuelRefineFactory(int id, String name, String nameRegional) {
         super(id, name, nameRegional);
         turnOffMaintenance();
+        useLongPower = true;
     }
 
     @Override
@@ -151,6 +155,28 @@ public class FuelRefineFactory extends GT_MetaTileEntity_TooltipMultiBlockBase_E
             public boolean placeBlock(T t, World world, int x, int y, int z, ItemStack trigger) {
                 return world.setBlock(x, y, z, coils[getIndex(trigger)], 0, 3);
             }
+
+            @Override
+            public BlocksToPlace getBlocksToPlace(T t, World world, int x, int y, int z, ItemStack trigger,
+                    AutoPlaceEnvironment env) {
+                return BlocksToPlace.create(coils[getIndex(trigger)], 0);
+            }
+
+            @Override
+            public PlaceResult survivalPlaceBlock(T t, World world, int x, int y, int z, ItemStack trigger,
+                    AutoPlaceEnvironment env) {
+                if (check(t, world, x, y, z)) return PlaceResult.SKIP;
+                return StructureUtility.survivalPlaceBlock(
+                        coils[getIndex(trigger)],
+                        0,
+                        world,
+                        x,
+                        y,
+                        z,
+                        env.getSource(),
+                        env.getActor(),
+                        env.getChatter());
+            }
         };
     }
 
@@ -163,9 +189,9 @@ public class FuelRefineFactory extends GT_MetaTileEntity_TooltipMultiBlockBase_E
                 .addInfo("Use higher tier coils to unlock more fuel types and reduce the processing times.")
                 .addInfo("The structure is too complex!").addInfo(BLUE_PRINT_INFO).addSeparator()
                 .beginStructureBlock(3, 15, 15, false).addInputHatch("The casings adjoin the field restriction glass.")
-                .addInputBus("The casings adjoin the field restriction glass.")
-                .addOutputHatch("The casings adjoin the field restriction glass.")
-                .addEnergyHatch("The casings adjoin the field restriction glass.").toolTipFinisher("Good Generator");
+                .addInputBus("The casings adjoin the field restriction glass.", 1)
+                .addOutputHatch("The casings adjoin the field restriction glass.", 1)
+                .addEnergyHatch("The casings adjoin the field restriction glass.", 1).toolTipFinisher("Good Generator");
         return tt;
     }
 
@@ -207,8 +233,8 @@ public class FuelRefineFactory extends GT_MetaTileEntity_TooltipMultiBlockBase_E
     }
 
     @Override
-    public GT_Recipe.GT_Recipe_Map getRecipeMap() {
-        return MyRecipeAdder.instance.FRF;
+    public RecipeMap<?> getRecipeMap() {
+        return GoodGeneratorRecipeMaps.naquadahFuelRefineFactoryRecipes;
     }
 
     @Override
@@ -332,8 +358,8 @@ public class FuelRefineFactory extends GT_MetaTileEntity_TooltipMultiBlockBase_E
     }
 
     @Override
-    public int survivalConstruct(ItemStack stackSize, int elementBudget, IItemSource source, EntityPlayerMP actor) {
+    public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
         if (mMachine) return -1;
-        return survivialBuildPiece(mName, stackSize, 7, 12, 1, elementBudget, source, actor, false, true);
+        return survivialBuildPiece(mName, stackSize, 7, 12, 1, elementBudget, env, false, true);
     }
 }

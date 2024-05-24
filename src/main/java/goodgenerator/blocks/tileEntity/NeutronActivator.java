@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.List;
 
 import net.minecraft.entity.player.EntityPlayer;
-import net.minecraft.entity.player.EntityPlayerMP;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
 import net.minecraft.util.EnumChatFormatting;
@@ -22,22 +21,22 @@ import org.jetbrains.annotations.NotNull;
 
 import com.gtnewhorizon.structurelib.alignment.constructable.IConstructable;
 import com.gtnewhorizon.structurelib.alignment.constructable.ISurvivalConstructable;
-import com.gtnewhorizon.structurelib.structure.IItemSource;
 import com.gtnewhorizon.structurelib.structure.IStructureDefinition;
+import com.gtnewhorizon.structurelib.structure.ISurvivalBuildEnvironment;
 import com.gtnewhorizon.structurelib.structure.StructureDefinition;
+import com.gtnewhorizons.modularui.api.NumberFormatMUI;
 import com.gtnewhorizons.modularui.common.widget.DynamicPositionedColumn;
 import com.gtnewhorizons.modularui.common.widget.FakeSyncWidget;
 import com.gtnewhorizons.modularui.common.widget.SlotWidget;
 import com.gtnewhorizons.modularui.common.widget.TextWidget;
 
+import goodgenerator.api.recipe.GoodGeneratorRecipeMaps;
 import goodgenerator.blocks.tileEntity.GTMetaTileEntity.NeutronAccelerator;
 import goodgenerator.blocks.tileEntity.GTMetaTileEntity.NeutronSensor;
 import goodgenerator.blocks.tileEntity.base.GT_MetaTileEntity_TooltipMultiBlockBase_EM;
 import goodgenerator.loader.Loaders;
-import goodgenerator.util.CharExchanger;
 import goodgenerator.util.DescTextLocalization;
 import goodgenerator.util.ItemRefer;
-import goodgenerator.util.MyRecipeAdder;
 import gregtech.api.GregTech_API;
 import gregtech.api.enums.GT_HatchElement;
 import gregtech.api.enums.Materials;
@@ -51,6 +50,7 @@ import gregtech.api.logic.ProcessingLogic;
 import gregtech.api.metatileentity.implementations.GT_MetaTileEntity_Hatch;
 import gregtech.api.multitileentity.multiblock.casing.Glasses;
 import gregtech.api.objects.XSTR;
+import gregtech.api.recipe.RecipeMap;
 import gregtech.api.recipe.check.CheckRecipeResult;
 import gregtech.api.render.TextureFactory;
 import gregtech.api.util.GT_Multiblock_Tooltip_Builder;
@@ -69,6 +69,12 @@ public class NeutronActivator extends GT_MetaTileEntity_TooltipMultiBlockBase_EM
     protected int height = 0;
     protected int eV = 0, mCeil = 0, mFloor = 0;
     private GT_Recipe lastRecipe;
+    protected static final NumberFormatMUI numberFormat;
+    static {
+        numberFormat = new NumberFormatMUI();
+        numberFormat.setMinimumFractionDigits(2);
+        numberFormat.setMaximumFractionDigits(2);
+    }
     final XSTR R = new XSTR();
 
     private static final IIconContainer textureFontOn = new Textures.BlockIcons.CustomIcon("icons/NeutronActivator_On");
@@ -171,8 +177,8 @@ public class NeutronActivator extends GT_MetaTileEntity_TooltipMultiBlockBase_EM
     }
 
     @Override
-    public GT_Recipe.GT_Recipe_Map getRecipeMap() {
-        return MyRecipeAdder.instance.NA;
+    public RecipeMap<?> getRecipeMap() {
+        return GoodGeneratorRecipeMaps.neutronActivatorRecipes;
     }
 
     protected GT_Multiblock_Tooltip_Builder createTooltip() {
@@ -244,10 +250,15 @@ public class NeutronActivator extends GT_MetaTileEntity_TooltipMultiBlockBase_EM
     }
 
     @Override
-    public boolean checkMachine_EM(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack) {
-        this.casingAmount = 0;
+    protected void clearHatches_EM() {
+        super.clearHatches_EM();
         this.mNeutronAccelerator.clear();
         this.mNeutronSensor.clear();
+    }
+
+    @Override
+    public boolean checkMachine_EM(IGregTechTileEntity aBaseMetaTileEntity, ItemStack aStack) {
+        this.casingAmount = 0;
         if (!structureCheck_EM(NA_BOTTOM, 2, 0, 0)) return false;
         height = 0;
         while (structureCheck_EM(NA_MID, 2, height + 1, 0)) {
@@ -311,14 +322,8 @@ public class NeutronActivator extends GT_MetaTileEntity_TooltipMultiBlockBase_EM
         super.onPostTick(aBaseMetaTileEntity, aTick);
         boolean anyWorking = false;
         if (aBaseMetaTileEntity.isServerSide()) {
-            startRecipeProcessing();
-            for (ItemStack input : getStoredInputs()) {
-                if (input.isItemEqual(Materials.Graphite.getDust(1))
-                        || input.isItemEqual(Materials.Beryllium.getDust(1))) {
-                    int consume = Math.min(this.eV / 10000000, input.stackSize);
-                    depleteInput(GT_Utility.copyAmount(consume, input));
-                    this.eV -= 10000000 * consume;
-                }
+            if (this.eV > 0 && (aTick % 20 == 0 || eV > mCeil)) {
+                tryUseModerator();
             }
 
             for (NeutronAccelerator tHatch : mNeutronAccelerator) {
@@ -341,40 +346,26 @@ public class NeutronActivator extends GT_MetaTileEntity_TooltipMultiBlockBase_EM
             if (this.eV > maxNeutronKineticEnergy()) doExplosion(4 * 32);
 
             for (NeutronSensor tHatch : mNeutronSensor) {
-                String tText = tHatch.getText();
-                if (CharExchanger.isValidCompareExpress(rawProcessExp(tText))) {
-                    if (CharExchanger.compareExpression(rawProcessExp(tText), eV)) {
-                        tHatch.outputRedstoneSignal();
-                    } else tHatch.stopOutputRedstoneSignal();
-                }
+                tHatch.updateRedstoneOutput(this.eV);
             }
 
             if (mProgresstime < mMaxProgresstime && (eV > mCeil || eV < mFloor)) {
                 this.mOutputFluids = null;
                 this.mOutputItems = new ItemStack[] { ItemRefer.Radioactive_Waste.get(4) };
             }
-            endRecipeProcessing();
         }
     }
 
-    public static String rawProcessExp(String exp) {
-        StringBuilder ret = new StringBuilder();
-        for (char c : exp.toCharArray()) {
-            if (exp.length() - ret.length() == 3) {
-                if (Character.isDigit(c)) ret.append(c);
-                else {
-                    if (c == 'K' || c == 'k') {
-                        ret.append("000");
-                    }
-                    if (c == 'M' || c == 'm') {
-                        ret.append("000000");
-                    }
-                }
-                break;
+    private void tryUseModerator() {
+        startRecipeProcessing();
+        for (ItemStack input : getStoredInputs()) {
+            if (input.isItemEqual(Materials.Graphite.getDust(1)) || input.isItemEqual(Materials.Beryllium.getDust(1))) {
+                int consume = Math.min(this.eV / 10000000, input.stackSize);
+                depleteInput(GT_Utility.copyAmount(consume, input));
+                this.eV -= 10000000 * consume;
             }
-            ret.append(c);
         }
-        return ret.toString();
+        endRecipeProcessing();
     }
 
     @Override
@@ -439,38 +430,17 @@ public class NeutronActivator extends GT_MetaTileEntity_TooltipMultiBlockBase_EM
     }
 
     @Override
-    public int survivalConstruct(ItemStack stackSize, int elementBudget, IItemSource source, EntityPlayerMP actor) {
+    public int survivalConstruct(ItemStack stackSize, int elementBudget, ISurvivalBuildEnvironment env) {
         if (mMachine) return -1;
 
-        int built = 0;
-        built += survivialBuildPiece(NA_BOTTOM, stackSize, 2, 0, 0, elementBudget, source, actor, false, true);
+        int built = survivialBuildPiece(NA_BOTTOM, stackSize, 2, 0, 0, elementBudget, env, false, true);
+        if (built >= 0) return built;
         int heights = stackSize.stackSize + 3;
-        built += survivialBuildPiece(
-                NA_TOP,
-                stackSize,
-                2,
-                heights + 1,
-                0,
-                elementBudget - built,
-                source,
-                actor,
-                false,
-                true);
-        while (heights > 0) {
-            built += survivialBuildPiece(
-                    NA_MID,
-                    stackSize,
-                    2,
-                    heights,
-                    0,
-                    elementBudget - built,
-                    source,
-                    actor,
-                    false,
-                    true);
-            heights--;
+        for (int i = 1; i <= heights; i++) {
+            built = survivialBuildPiece(NA_MID, stackSize, 2, i, 0, elementBudget, env, false, true);
+            if (built >= 0) return built;
         }
-        return built;
+        return survivialBuildPiece(NA_TOP, stackSize, 2, heights + 1, 0, elementBudget, env, false, true);
     }
 
     protected void onCasingFound() {
@@ -486,23 +456,10 @@ public class NeutronActivator extends GT_MetaTileEntity_TooltipMultiBlockBase_EM
                         new TextWidget(StatCollector.translateToLocal("gui.NeutronActivator.0"))
                                 .setDefaultColor(COLOR_TEXT_WHITE.get()))
                 .widget(
-                        TextWidget.dynamicString(() -> processNumber(eV) + "eV").setSynced(false)
+                        new TextWidget().setStringSupplier(() -> numberFormat.format(eV / 1_000_000d) + " MeV")
                                 .setDefaultColor(COLOR_TEXT_WHITE.get())
                                 .setEnabled(widget -> getBaseMetaTileEntity().getErrorDisplayID() == 0))
                 .widget(new FakeSyncWidget.IntegerSyncer(() -> eV, val -> eV = val));
-    }
-
-    private String processNumber(int num) {
-        float num2;
-        num2 = ((float) num) / 1000F;
-        if (num2 <= 0) {
-            return String.format("%d", num);
-        }
-        if (num2 < 1000.0) {
-            return String.format("%.1fK", num2);
-        }
-        num2 /= 1000F;
-        return String.format("%.1fM", num2);
     }
 
     private enum NeutronHatchElement implements IHatchElement<NeutronActivator> {
