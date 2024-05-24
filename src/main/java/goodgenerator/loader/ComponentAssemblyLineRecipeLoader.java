@@ -27,6 +27,7 @@ import gregtech.api.enums.Materials;
 import gregtech.api.enums.MaterialsUEVplus;
 import gregtech.api.enums.OrePrefixes;
 import gregtech.api.objects.ItemData;
+import gregtech.api.recipe.RecipeMaps;
 import gregtech.api.util.GT_OreDictUnificator;
 import gregtech.api.util.GT_Recipe;
 import gregtech.api.util.GT_Utility;
@@ -175,6 +176,21 @@ public class ComponentAssemblyLineRecipeLoader {
                             recipe.mDuration * INPUT_MULTIPLIER, // Takes as long as this many
                             recipe.mEUt,
                             info.getRight()); // Casing tier
+
+                    // Add a second recipe using Styrene-Butadiene
+                    // Rubber instead of Silicone Rubber.
+                    // This relies on silicone rubber being first in
+                    // @allSyntheticRubber so it's quite fragile, but
+                    // it's also the least invasive change.
+                    if (swapSiliconeForStyreneButadiene(fixedFluids)) {
+                        MyRecipeAdder.instance.addComponentAssemblyLineRecipe(
+                                fixedInputs.toArray(new ItemStack[0]),
+                                fixedFluids.toArray(new FluidStack[0]),
+                                info.getLeft().get(OUTPUT_MULTIPLIER), // The component output
+                                recipe.mDuration * INPUT_MULTIPLIER, // Takes as long as this many
+                                recipe.mEUt,
+                                info.getRight()); // Casing tier
+                    }
                 }
             }
         });
@@ -371,7 +387,7 @@ public class ComponentAssemblyLineRecipeLoader {
                 if (currentComponent.hasBeenSet()) {
                     if (t < 6) {
                         ArrayList<GT_Recipe> foundRecipes = new ArrayList<>();
-                        for (GT_Recipe recipe : GT_Recipe.GT_Recipe_Map.sAssemblerRecipes.mRecipeList) {
+                        for (GT_Recipe recipe : RecipeMaps.assemblerRecipes.getAllRecipes()) {
                             if (GT_Utility.areStacksEqual(currentComponent.get(1), recipe.mOutputs[0])) {
                                 foundRecipes.add(recipe);
                             }
@@ -440,5 +456,16 @@ public class ComponentAssemblyLineRecipeLoader {
             // in their assline recipes and each CoAl recipe has 48x recipe inputs
             fluidInputs.add(MaterialsUEVplus.Eternity.getMolten(mhdcsmAmount - 576 * 48));
         }
+    }
+
+    private static boolean swapSiliconeForStyreneButadiene(ArrayList<FluidStack> fluidInputs) {
+        for (int i = 0; i < fluidInputs.size(); i++) {
+            FluidStack fluidstack = fluidInputs.get(i);
+            if (fluidstack.getFluid().equals(FluidRegistry.getFluid("molten.silicone"))) {
+                fluidInputs.set(i, FluidRegistry.getFluidStack("molten.styrenebutadienerubber", fluidstack.amount));
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -24,9 +24,9 @@ import gregtech.api.metatileentity.implementations.GT_MetaTileEntity_Hatch_Energ
 import gregtech.api.metatileentity.implementations.GT_MetaTileEntity_Hatch_Input;
 import gregtech.api.metatileentity.implementations.GT_MetaTileEntity_Hatch_Output;
 import gregtech.api.render.TextureFactory;
-import gregtech.api.util.AdvFusionPower;
 import gregtech.api.util.GT_Multiblock_Tooltip_Builder;
 import gregtech.api.util.GT_Utility;
+import gregtech.common.tileentities.machines.IDualInputHatch;
 import gtPlusPlus.core.block.ModBlocks;
 import gtPlusPlus.xmod.gregtech.common.blocks.textures.TexturesGtBlock;
 
@@ -34,13 +34,10 @@ public class LargeFusionComputer5 extends LargeFusionComputerPP {
 
     public LargeFusionComputer5(int id, String name, String nameRegional) {
         super(id, name, nameRegional);
-        // Theoretically the reactor has a higher startup value but special recipe value is limited to int
-        power = new AdvFusionPower((byte) 10, Integer.MAX_VALUE);
     }
 
     public LargeFusionComputer5(String name) {
         super(name);
-        power = new AdvFusionPower((byte) 10, Integer.MAX_VALUE);
     }
 
     @Override
@@ -48,14 +45,27 @@ public class LargeFusionComputer5 extends LargeFusionComputerPP {
         final GT_Multiblock_Tooltip_Builder tt = new GT_Multiblock_Tooltip_Builder();
         tt.addMachineType("Fusion Reactor").addInfo("Galaxy Collapse.")
                 .addInfo("Controller block for the Compact Fusion Reactor MK-V.")
-                .addInfo("167,772,160EU/t and 320M EU capacity per Energy Hatch")
+                .addInfo(
+                        EnumChatFormatting.AQUA + GT_Utility.formatNumbers(getSingleHatchPower())
+                                + EnumChatFormatting.GRAY
+                                + " EU/t and "
+                                + EnumChatFormatting.AQUA
+                                + GT_Utility.formatNumbers(capableStartupCanonical() / 32 / M)
+                                + "M"
+                                + EnumChatFormatting.GRAY
+                                + " EU capacity per Energy Hatch")
                 .addInfo("If the recipe has a startup cost greater than the")
                 .addInfo("number of energy hatches * cap, you can't do it")
+                .addInfo(
+                        "If the recipe requires a voltage tier over "
+                                + GT_Utility.getColoredTierNameFromTier((byte) tier())
+                                + EnumChatFormatting.GRAY
+                                + " , you can't do it either")
                 .addInfo("Make sure the whole structure is built in the 3x3")
                 .addInfo("chunk area of the ring center (not controller).").addInfo("Performs 4/4 overclock.")
                 .addInfo("Startup < 160,000,000 EU: 320x Parallel").addInfo("Startup < 320,000,000 EU: 256x Parallel")
                 .addInfo("Startup < 640,000,000 EU: 192x Parallel").addInfo("Startup < 1,200,000,000 EU: 128x Parallel")
-                .addInfo("Startup < 2,000,000,000 EU: 64x Parallel")
+                .addInfo("Startup >= 1,200,000,000 EU: 64x Parallel")
                 .addInfo(
                         "Support" + EnumChatFormatting.BLUE
                                 + " Tec"
@@ -68,7 +78,7 @@ public class LargeFusionComputer5 extends LargeFusionComputerPP {
                 .addCasingInfo("Compact Fusion Coil MK-II Finaltype", 560).addCasingInfo("Infinity Frame Box", 128)
                 .addCasingInfo("Cosmic Neutronium Reinforced Borosilicate Glass Block", 63)
                 .addEnergyHatch("1-32, Hint block with dot 2", 2).addInputHatch("1-16, Hint block with dot 1", 1)
-                .addOutputHatch("1-16, Hint block with dot 1", 1)
+                .addOutputHatch("1-16, Hint block with dot 1", 1).addStructureInfo("Supports Crafting Input Buffer")
                 .addStructureInfo(
                         "ALL Hatches must be " + GT_Utility.getColoredTierNameFromTier((byte) hatchTier())
                                 + EnumChatFormatting.GRAY
@@ -78,8 +88,13 @@ public class LargeFusionComputer5 extends LargeFusionComputerPP {
     }
 
     @Override
-    public long maxEUStore() {
-        return 10240800000L * (Math.min(32, this.mEnergyHatches.size() + this.eEnergyMulti.size())) / 32L;
+    public int tier() {
+        return 10;
+    }
+
+    @Override
+    public long capableStartupCanonical() {
+        return 20_480_000_000L;
     }
 
     @Override
@@ -136,11 +151,6 @@ public class LargeFusionComputer5 extends LargeFusionComputerPP {
     }
 
     @Override
-    public int tierOverclock() {
-        return 16;
-    }
-
-    @Override
     public int extraPara(int startEnergy) {
         if (startEnergy < 160000000) return 5;
         if (startEnergy < 320000000) return 4;
@@ -173,6 +183,11 @@ public class LargeFusionComputer5 extends LargeFusionComputerPP {
         }
         if (this.mInputHatches != null) {
             for (GT_MetaTileEntity_Hatch_Input hatch : this.mInputHatches) {
+                hatch.updateTexture(status ? TAE.getIndexFromPage(3, 6) : 53);
+            }
+        }
+        if (this.mDualInputHatches != null) {
+            for (IDualInputHatch hatch : this.mDualInputHatches) {
                 hatch.updateTexture(status ? TAE.getIndexFromPage(3, 6) : 53);
             }
         }
