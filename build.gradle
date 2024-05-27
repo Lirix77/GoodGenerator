@@ -420,7 +420,7 @@ catch (Exception ignored) {
 }
 version = ""
 ext {
-    modVersion = identifiedVersion
+    modVersion = "0.7.6"
 }
 
 if (identifiedVersion == versionOverride) {
