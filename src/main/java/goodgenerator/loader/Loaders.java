@@ -3,6 +3,7 @@ package goodgenerator.loader;
 import static goodgenerator.util.DescTextLocalization.addText;
 import static gregtech.api.enums.Mods.GTPlusPlus;
 
+import gregtech.api.enums.Mods;
 import net.minecraft.block.Block;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
@@ -333,7 +334,7 @@ public class Loaders {
     public static void Register() {
 
         GameRegistry.registerItem(_null_, "_null_", GoodGenerator.MOD_ID);
-        NEI_Config.hide(_null_);
+        if(Mods.NotEnoughItems.isModLoaded()) NEI_Config.hide(_null_);
 
         GameRegistry.registerBlock(MAR_Casing, MyItemBlocks.class, "MAR_Casing");
         GameRegistry.registerBlock(radiationProtectionSteelFrame, MyItemBlocks.class, "radiationProtectionSteelFrame");
