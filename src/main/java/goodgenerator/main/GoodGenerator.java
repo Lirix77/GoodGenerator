@@ -33,7 +33,7 @@ public final class GoodGenerator {
 
     public static final String MOD_ID = "GoodGenerator";
     public static final String MOD_NAME = "Good Generator";
-    public static final String VERSION = Tags.VERSION;
+    public static final String VERSION = "0.7.6";
 
     public static final CreativeTabs GG = new MyTabs("Good Generator");
 
